@@ -96,13 +96,19 @@
         function clearAll() {input.value = '';}
         function del() {input.value = input.value.slice(0, -1);}
         function calcResult() {
-            try {
-                let exp = input.value.replace(/×/g, '*');
-                input.value = eval(exp);
-            } catch (err) {
-                input.value = '表达式错误';
-            }
+    try {
+        let exp = input.value.replace(/×/g, '*');
+        let res = eval(exp);
+        if(isNaN(res) || res === Infinity || res === -Infinity){
+            input.value = "表达式无效";
+        }else{
+            input.value = res;
         }
+    } catch (err) {
+        input.value = "表达式无效";
+    }
+}
+
     </script>
 </body>
 </html>
