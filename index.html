@@ -13,15 +13,43 @@
         body {
             background-color: #f0f0f0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 20px 0;
         }
-        .calc {
+        .title {
+            font-size: 38px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 24px;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .calc-wrap {
             background: #222;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 0 20px #0003;
+        }
+        .tab-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .tab-bar button {
+            padding: 10px 0;
+            background: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tab-bar button.active {
+            background: #34c759;
         }
         #input-box {
             width: 100%;
@@ -45,6 +73,7 @@
             border-radius: 6px;
             cursor: pointer;
             background: #eee;
+            transition: 0.2s;
         }
         button.opt {
             background: #ff9500;
@@ -59,56 +88,240 @@
             color: white;
             grid-column: span 2;
         }
+        .convert-panel {
+            display: none;
+            color: #fff;
+        }
+        .convert-panel.show {
+            display: block;
+        }
+        .calc-panel {
+            display: block;
+        }
+        .calc-panel.hide {
+            display: none;
+        }
+        .convert-row {
+            margin: 10px 0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .convert-row input, .convert-row select {
+            flex: 1;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 4px;
+            border: none;
+        }
+        .convert-btn {
+            width: 100%;
+            margin-top: 8px;
+            background: #34c759;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="calc">
-        <input type="text" id="input-box" readonly>
-        <div class="btn-group">
-            <button class="clear" onclick="clearAll()">C</button>
-            <button onclick="del()">←</button>
-            <button class="opt" onclick="inputChar('/')">/</button>
-            <button class="opt" onclick="inputChar('*')">×</button>
+    <h1 class="title">Online Calculator</h1>
+    <div class="calc-wrap">
+        <div class="tab-bar">
+            <button class="active" onclick="switchTab('calc')">标准计算</button>
+            <button onclick="switchTab('rate')">汇率换算</button>
+            <button onclick="switchTab('length')">长度换算</button>
+            <button onclick="switchTab('weight')">重量换算</button>
+        </div>
 
-            <button onclick="inputChar('7')">7</button>
-            <button onclick="inputChar('8')">8</button>
-            <button onclick="inputChar('9')">9</button>
-            <button class="opt" onclick="inputChar('-')">-</button>
+        <div class="calc-panel" id="calcPanel">
+            <input type="text" id="input-box" readonly>
+            <div class="btn-group">
+                <button class="clear" onclick="clearAll()">C</button>
+                <button onclick="del()">←</button>
+                <button class="opt" onclick="inputChar('/')">/</button>
+                <button class="opt" onclick="inputChar('*')">×</button>
 
-            <button onclick="inputChar('4')">4</button>
-            <button onclick="inputChar('5')">5</button>
-            <button onclick="inputChar('6')">6</button>
-            <button class="opt" onclick="inputChar('+')">+</button>
+                <button onclick="inputChar('7')">7</button>
+                <button onclick="inputChar('8')">8</button>
+                <button onclick="inputChar('9')">9</button>
+                <button class="opt" onclick="inputChar('-')">-</button>
 
-            <button onclick="inputChar('1')">1</button>
-            <button onclick="inputChar('2')">2</button>
-            <button onclick="inputChar('3')">3</button>
-            <button class="equal" onclick="calcResult()">=</button>
+                <button onclick="inputChar('4')">4</button>
+                <button onclick="inputChar('5')">5</button>
+                <button onclick="inputChar('6')">6</button>
+                <button class="opt" onclick="inputChar('+')">+</button>
 
-            <button onclick="inputChar('0')">0</button>
-            <button onclick="inputChar('.')">.</button>
+                <button onclick="inputChar('1')">1</button>
+                <button onclick="inputChar('2')">2</button>
+                <button onclick="inputChar('3')">3</button>
+                <button class="equal" onclick="calcResult()">=</button>
+
+                <button onclick="inputChar('0')">0</button>
+                <button onclick="inputChar('.')">.</button>
+            </div>
+        </div>
+
+        <div class="convert-panel" id="ratePanel">
+            <div class="convert-row">
+                <select id="rateFrom">
+                    <option value="CNY">人民币 CNY</option>
+                    <option value="USD">美元 USD</option>
+                    <option value="EUR">欧元 EUR</option>
+                    <option value="JPY">日元 JPY</option>
+                    <option value="GBP">英镑 GBP</option>
+                </select>
+                <input type="number" id="rateNum" placeholder="输入金额">
+            </div>
+            <div class="convert-row">
+                <select id="rateTo">
+                    <option value="USD">美元 USD</option>
+                    <option value="EUR">欧元 EUR</option>
+                    <option value="JPY">日元 JPY</option>
+                    <option value="GBP">英镑 GBP</option>
+                    <option value="CNY">人民币 CNY</option>
+                </select>
+                <input type="text" id="rateRes" readonly placeholder="换算结果">
+            </div>
+            <button class="convert-btn" onclick="calcRate()">立即换算</button>
+        </div>
+
+        <div class="convert-panel" id="lengthPanel">
+            <div class="convert-row">
+                <select id="lenFrom">
+                    <option value="m">米(m)</option>
+                    <option value="km">千米(km)</option>
+                    <option value="cm">厘米(cm)</option>
+                    <option value="mm">毫米(mm)</option>
+                    <option value="li">里</option>
+                    <option value="inch">英寸</option>
+                </select>
+                <input type="number" id="lenNum" placeholder="输入数值">
+            </div>
+            <div class="convert-row">
+                <select id="lenTo">
+                    <option value="m">米(m)</option>
+                    <option value="km">千米(km)</option>
+                    <option value="cm">厘米(cm)</option>
+                    <option value="mm">毫米(mm)</option>
+                    <option value="li">里</option>
+                    <option value="inch">英寸</option>
+                </select>
+                <input type="text" id="lenRes" readonly placeholder="换算结果">
+            </div>
+            <button class="convert-btn" onclick="calcLength()">立即换算</button>
+        </div>
+
+        <div class="convert-panel" id="weightPanel">
+            <div class="convert-row">
+                <select id="wFrom">
+                    <option value="kg">千克(kg)</option>
+                    <option value="g">克(g)</option>
+                    <option value="jin">斤</option>
+                    <option value="ton">吨(ton)</option>
+                    <option value="lb">磅(lb)</option>
+                </select>
+                <input type="number" id="wNum" placeholder="输入数值">
+            </div>
+            <div class="convert-row">
+                <select id="wTo">
+                    <option value="kg">千克(kg)</option>
+                    <option value="g">克(g)</option>
+                    <option value="jin">斤</option>
+                    <option value="ton">吨(ton)</option>
+                    <option value="lb">磅(lb)</option>
+                </select>
+                <input type="text" id="wRes" readonly placeholder="换算结果">
+            </div>
+            <button class="convert-btn" onclick="calcWeight()">立即换算</button>
         </div>
     </div>
 
     <script>
         const input = document.getElementById('input-box');
+        function switchTab(type) {
+            document.getElementById('calcPanel').classList.add('hide');
+            document.getElementById('ratePanel').classList.remove('show');
+            document.getElementById('lengthPanel').classList.remove('show');
+            document.getElementById('weightPanel').classList.remove('show');
+            document.querySelectorAll('.tab-bar button').forEach(btn=>btn.classList.remove('active'));
+
+            switch(type){
+                case 'calc':
+                    document.getElementById('calcPanel').classList.remove('hide');
+                    document.querySelector('.tab-bar button:nth-child(1)').classList.add('active');
+                    break;
+                case 'rate':
+                    document.getElementById('ratePanel').classList.add('show');
+                    document.querySelector('.tab-bar button:nth-child(2)').classList.add('active');
+                    break;
+                case 'length':
+                    document.getElementById('lengthPanel').classList.add('show');
+                    document.querySelector('.tab-bar button:nth-child(3)').classList.add('active');
+                    break;
+                case 'weight':
+                    document.getElementById('weightPanel').classList.add('show');
+                    document.querySelector('.tab-bar button:nth-child(4)').classList.add('active');
+                    break;
+            }
+        }
+
         function inputChar(c) {input.value += c;}
         function clearAll() {input.value = '';}
         function del() {input.value = input.value.slice(0, -1);}
         function calcResult() {
-    try {
-        let exp = input.value.replace(/×/g, '*');
-        let res = eval(exp);
-        if(isNaN(res) || res === Infinity || res === -Infinity){
-            input.value = "表达式无效";
-        }else{
-            input.value = res;
+            try {
+                let exp = input.value.replace(/×/g, '*');
+                let res = eval(exp);
+                if(isNaN(res) || res === Infinity || res === -Infinity){
+                    input.value = "表达式无效";
+                }else{
+                    input.value = res;
+                }
+            } catch (err) {
+                input.value = "表达式无效";
+            }
         }
-    } catch (err) {
-        input.value = "表达式无效";
-    }
-}
 
+        const rateBase = {CNY: 1, USD: 0.14, EUR: 0.13, JPY: 21, GBP: 0.11};
+        function calcRate() {
+            const from = document.getElementById('rateFrom').value;
+            const to = document.getElementById('rateTo').value;
+            const num = Number(document.getElementById('rateNum').value);
+            if(isNaN(num) || num <= 0){
+                document.getElementById('rateRes').value = "输入有效金额";
+                return;
+            }
+            let cny = num / rateBase[from];
+            let target = cny * rateBase[to];
+            document.getElementById('rateRes').value = target.toFixed(2);
+        }
+
+        const lenBase = {m:1,km:1000,cm:0.01,mm:0.001,li:500,inch:0.0254};
+        function calcLength() {
+            const from = document.getElementById('lenFrom').value;
+            const to = document.getElementById('lenTo').value;
+            const num = Number(document.getElementById('lenNum').value);
+            if(isNaN(num) || num <= 0){
+                document.getElementById('lenRes').value = "输入有效数值";
+                return;
+            }
+            let meter = num * lenBase[from];
+            let res = meter / lenBase[to];
+            document.getElementById('lenRes').value = res.toFixed(4);
+        }
+
+        const weightBase = {kg:1,g:0.001,jin:0.5,ton:1000,lb:0.453592};
+        function calcWeight() {
+            const from = document.getElementById('wFrom').value;
+            const to = document.getElementById('wTo').value;
+            const num = Number(document.getElementById('wNum').value);
+            if(isNaN(num) || num <= 0){
+                document.getElementById('wRes').value = "输入有效数值";
+                return;
+            }
+            let kg = num * weightBase[from];
+            let res = kg / weightBase[to];
+            document.getElementById('wRes').value = res.toFixed(4);
+        }
     </script>
 </body>
 </html>
