@@ -120,18 +120,25 @@
             background: #34c759;
             color: #fff;
         }
+        .rate-tip {
+            font-size: 12px;
+            color: #ccc;
+            margin: 6px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1 class="title">Online Calculator</h1>
+    <h1 class="title">在线计算器</h1>
     <div class="calc-wrap">
         <div class="tab-bar">
-            <button class="active" onclick="switchTab('calc')">标准计算</button>
+            <button class="active" onclick="switchTab('calc')">普通计算</button>
             <button onclick="switchTab('rate')">汇率换算</button>
             <button onclick="switchTab('length')">长度换算</button>
             <button onclick="switchTab('weight')">重量换算</button>
         </div>
 
+        <!-- 普通计算器 -->
         <div class="calc-panel" id="calcPanel">
             <input type="text" id="input-box" readonly>
             <div class="btn-group">
@@ -160,7 +167,9 @@
             </div>
         </div>
 
+        <!-- 实时汇率换算 -->
         <div class="convert-panel" id="ratePanel">
+            <div class="rate-tip">💱 汇率实时自动更新</div>
             <div class="convert-row">
                 <select id="rateFrom">
                     <option value="CNY">人民币 CNY</option>
@@ -184,6 +193,7 @@
             <button class="convert-btn" onclick="calcRate()">立即换算</button>
         </div>
 
+        <!-- 长度换算 -->
         <div class="convert-panel" id="lengthPanel">
             <div class="convert-row">
                 <select id="lenFrom">
@@ -210,6 +220,7 @@
             <button class="convert-btn" onclick="calcLength()">立即换算</button>
         </div>
 
+        <!-- 重量换算 -->
         <div class="convert-panel" id="weightPanel">
             <div class="convert-row">
                 <select id="wFrom">
@@ -237,6 +248,26 @@
 
     <script>
         const input = document.getElementById('input-box');
+        // 全局实时汇率缓存
+        let latestRate = {};
+
+        // 页面加载自动获取最新汇率
+        window.onload = async function(){
+            await fetchLatestRate();
+        }
+
+        // 获取实时汇率（免费、无key、跨域可用）
+        async function fetchLatestRate(){
+            try{
+                let res = await fetch("https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/latest/cny.json");
+                latestRate = await res.json();
+            }catch(e){
+                // 失败兜底备用近似汇率
+                latestRate = {usd:0.14,eur:0.13,jpy:21,gbp:0.11,cny:1};
+            }
+        }
+
+        // 切换面板
         function switchTab(type) {
             document.getElementById('calcPanel').classList.add('hide');
             document.getElementById('ratePanel').classList.remove('show');
@@ -264,6 +295,7 @@
             }
         }
 
+        // 基础计算器
         function inputChar(c) {input.value += c;}
         function clearAll() {input.value = '';}
         function del() {input.value = input.value.slice(0, -1);}
@@ -281,20 +313,26 @@
             }
         }
 
-        const rateBase = {CNY: 1, USD: 0.14, EUR: 0.13, JPY: 21, GBP: 0.11};
-        function calcRate() {
-            const from = document.getElementById('rateFrom').value;
-            const to = document.getElementById('rateTo').value;
+        // 实时汇率换算
+        async function calcRate() {
+            const from = document.getElementById('rateFrom').value.toLowerCase();
+            const to = document.getElementById('rateTo').value.toLowerCase();
             const num = Number(document.getElementById('rateNum').value);
+
             if(isNaN(num) || num <= 0){
                 document.getElementById('rateRes').value = "输入有效金额";
                 return;
             }
-            let cny = num / rateBase[from];
-            let target = cny * rateBase[to];
-            document.getElementById('rateRes').value = target.toFixed(2);
+
+            // 如果汇率为空，重新拉取
+            if(!latestRate.usd) await fetchLatestRate();
+
+            let baseCny = from === "cny" ? 1 : (1 / latestRate[from]);
+            let result = num * baseCny * latestRate[to];
+            document.getElementById('rateRes').value = result.toFixed(4);
         }
 
+        // 长度换算
         const lenBase = {m:1,km:1000,cm:0.01,mm:0.001,li:500,inch:0.0254};
         function calcLength() {
             const from = document.getElementById('lenFrom').value;
@@ -309,6 +347,7 @@
             document.getElementById('lenRes').value = res.toFixed(4);
         }
 
+        // 重量换算
         const weightBase = {kg:1,g:0.001,jin:0.5,ton:1000,lb:0.453592};
         function calcWeight() {
             const from = document.getElementById('wFrom').value;
