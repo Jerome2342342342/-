@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Online Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .calc {
+            background: #222;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px #0003;
+        }
+        #input-box {
+            width: 100%;
+            padding: 16px 10px;
+            font-size: 32px;
+            text-align: right;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 6px;
+            background: #f8f8f8;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 70px);
+            gap: 10px;
+        }
+        button {
+            padding: 18px 0;
+            font-size: 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #eee;
+        }
+        button.opt {
+            background: #ff9500;
+            color: white;
+        }
+        button.clear {
+            background: #ff3b30;
+            color: white;
+        }
+        button.equal {
+            background: #34c759;
+            color: white;
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calc">
+        <input type="text" id="input-box" readonly>
+        <div class="btn-group">
+            <button class="clear" onclick="clearAll()">C</button>
+            <button onclick="del()">←</button>
+            <button class="opt" onclick="inputChar('/')">/</button>
+            <button class="opt" onclick="inputChar('*')">×</button>
+
+            <button onclick="inputChar('7')">7</button>
+            <button onclick="inputChar('8')">8</button>
+            <button onclick="inputChar('9')">9</button>
+            <button class="opt" onclick="inputChar('-')">-</button>
+
+            <button onclick="inputChar('4')">4</button>
+            <button onclick="inputChar('5')">5</button>
+            <button onclick="inputChar('6')">6</button>
+            <button class="opt" onclick="inputChar('+')">+</button>
+
+            <button onclick="inputChar('1')">1</button>
+            <button onclick="inputChar('2')">2</button>
+            <button onclick="inputChar('3')">3</button>
+            <button class="equal" onclick="calcResult()">=</button>
+
+            <button onclick="inputChar('0')">0</button>
+            <button onclick="inputChar('.')">.</button>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input-box');
+        function inputChar(c) {input.value += c;}
+        function clearAll() {input.value = '';}
+        function del() {input.value = input.value.slice(0, -1);}
+        function calcResult() {
+            try {
+                let exp = input.value.replace(/×/g, '*');
+                input.value = eval(exp);
+            } catch (err) {
+                input.value = '表达式错误';
+            }
+        }
+    </script>
+</body>
+</html>
