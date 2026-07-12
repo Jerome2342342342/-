@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multifunctional Calculator Chinese-English Translation</title>
+<title>Multifunction Calculator · Chinese-English Translation</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -22,13 +22,47 @@ key: '#f5f5f5',
 <style>
 .tab-active { @apply bg-primary text-white }
 .btn-key { @apply transition-all duration-100 active:scale-95 hover:brightness-110 }
+/* 旋转圆环加载动画 */
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+.load-ring {
+width: 64px;
+height: 64px;
+border: 6px #e5e7eb solid;
+border-top-color: #22c55e;
+border-radius: 50%;
+animation: spin 1s linear infinite;
+}
+/* 绿色对勾图标 */
+.check-icon {
+width: 64px;
+height: 64px;
+color: #22c55e;
+font-size: 64px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+/* 页面初始隐藏，加载完成后显示 */
+#mainWrap { display: none; }
+#loadingBox { display: flex; }
 </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-<h1 class="text-[clamp(1.8rem,5vw,2.4rem)] font-bold text-gray-800 mb-6">多功能计算器 · 中英翻译(2026年7月12更新)</h1>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4 m-0">
 
-<div class="w-full max-w-md bg-panel rounded-xl p-4 shadow-2xl">
-  <!-- 标签栏（新增翻译标签） -->
+<!-- 全局加载弹窗 -->
+<div id="loadingBox" class="fixed inset-0 bg-gray-100 flex flex-col items-center justify-center z-50 gap-6">
+  <div id="loadAnim" class="load-ring"></div>
+  <div id="loadText" class="text-xl font-medium text-gray-700">正在连接服务器</div>
+</div>
+
+<!-- 主页面容器 -->
+<div id="mainWrap" class="w-full max-w-md">
+<h1 class="text-[clamp(1.8rem,5vw,2.4rem)] font-bold text-gray-800 mb-6 text-center">多功能计算器 · 中英翻译(2026年7月12更新)</h1>
+
+<div class="bg-panel rounded-xl p-4 shadow-2xl">
+  <!-- 标签栏 -->
   <div class="flex gap-1 mb-4 flex-wrap">
     <button class="calc-tab tab-active px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="calc">普通计算</button>
     <button class="calc-tab bg-gray-700 text-gray-200 px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="rate">汇率换算</button>
@@ -142,7 +176,7 @@ key: '#f5f5f5',
     </div>
   </div>
 
-  <!-- 5. 新增：中英翻译面板 -->
+  <!-- 5. 中英翻译面板 -->
   <div id="panel-trans" class="calc-panel hidden space-y-3">
     <div class="flex justify-between items-center">
       <span class="text-white text-sm">输入文本</span>
@@ -159,8 +193,35 @@ key: '#f5f5f5',
     </div>
   </div>
 </div>
+</div>
 
 <script>
+// 分段加载动画逻辑：1秒连接服务器(旋转圆环) → 1秒获取更新(旋转圆环) → 1秒连接成功(绿色对勾)，随后进入页面
+(async function runLoading() {
+  const loadAnim = document.getElementById('loadAnim');
+  const loadText = document.getElementById('loadText');
+  const loadingBox = document.getElementById('loadingBox');
+  const mainWrap = document.getElementById('mainWrap');
+
+  // 阶段1：正在连接服务器（旋转圆环）
+  loadText.textContent = '正在连接服务器';
+  await new Promise(res => setTimeout(res, 1000));
+
+  // 阶段2：正在获取更新（旋转圆环）
+  loadText.textContent = '正在获取更新';
+  await new Promise(res => setTimeout(res, 1000));
+
+  // 阶段3：服务器连接成功（替换圆环为绿色对勾）
+  loadText.textContent = '服务器连接成功';
+  loadAnim.className = 'check-icon';
+  loadAnim.innerHTML = '✓';
+  await new Promise(res => setTimeout(res, 1000));
+
+  // 隐藏加载弹窗，显示主页面
+  loadingBox.style.display = 'none';
+  mainWrap.style.display = 'block';
+})();
+
 // 标签切换
 const tabs = document.querySelectorAll('.calc-tab');
 const panels = document.querySelectorAll('.calc-panel');
@@ -227,12 +288,11 @@ document.getElementById('wt-in').oninput = calcWeight;
 document.getElementById('wt-from').onchange = calcWeight;
 document.getElementById('wt-to').onchange = calcWeight;
 
-// ========== 新增：中英翻译（简易内置词典兜底 + 在线翻译API） ==========
+// ========== 中英翻译（在线API+本地词典兜底） ==========
 const transIn = document.getElementById('trans-in');
 const transOut = document.getElementById('trans-out');
 const transDir = document.getElementById('trans-dir');
 
-// 简易内置词典（兜底，无网络时可用）
 const zh2enDict = {
   你好: 'Hello', 世界: 'World', 谢谢: 'Thank you', 再见: 'Goodbye',
   我爱你: 'I love you', 早上好: 'Good morning', 晚上好: 'Good evening',
@@ -250,7 +310,6 @@ async function translateText(){
   }
   transOut.value = '翻译中…';
   const dir = transDir.value;
-  // 优先在线翻译API（免费公共接口）
   try{
     const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${dir==='zh2en'?'zh|en':'en|zh'}`;
     const res = await fetch(apiUrl);
@@ -262,7 +321,6 @@ async function translateText(){
   }catch(err){
     console.log('在线翻译失败，使用本地词典兜底',err);
   }
-  // 在线失败，本地词典逐词替换
   let result = text;
   if(dir === 'zh2en'){
     Object.keys(zh2enDict).forEach(k=>result = result.replaceAll(k,zh2enDict[k]));
