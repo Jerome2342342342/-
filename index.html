@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multifunctional Online Calculator</title>
+<title>Multifunctional Calculator Chinese-English Translation</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -25,21 +25,22 @@ key: '#f5f5f5',
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-<h1 class="text-[clamp(1.8rem,5vw,2.4rem)] font-bold text-gray-800 mb-6">在线计算器</h1>
+<h1 class="text-[clamp(1.8rem,5vw,2.4rem)] font-bold text-gray-800 mb-6">多功能计算器 · 中英翻译(2026年7月12更新)</h1>
 
 <div class="w-full max-w-md bg-panel rounded-xl p-4 shadow-2xl">
-  <!-- 标签栏 -->
-  <div class="flex gap-1 mb-4">
-    <button class="calc-tab tab-active px-4 py-2 rounded-t-lg font-medium" data-tab="calc">普通计算</button>
-    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="rate">汇率换算</button>
-    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="length">长度换算</button>
-    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="weight">重量换算</button>
+  <!-- 标签栏（新增翻译标签） -->
+  <div class="flex gap-1 mb-4 flex-wrap">
+    <button class="calc-tab tab-active px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="calc">普通计算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="rate">汇率换算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="length">长度换算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="weight">重量换算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-3 py-2 rounded-t-lg font-medium text-sm" data-tab="trans">中英翻译</button>
   </div>
 
-  <!-- 输入框 -->
+  <!-- 计算器输入框 -->
   <input id="display" readonly class="w-full h-16 bg-white rounded-lg text-right text-2xl px-4 mb-4 outline-none" value="">
 
-  <!-- 普通计算器面板 -->
+  <!-- 1. 普通计算器面板 -->
   <div id="panel-calc" class="calc-panel grid grid-cols-4 gap-2">
     <button class="btn-key bg-danger text-white py-4 rounded-lg text-xl" onclick="clearAll()">C</button>
     <button class="btn-key bg-gray-300 py-4 rounded-lg text-xl" onclick="backspace()">←</button>
@@ -66,7 +67,7 @@ key: '#f5f5f5',
     <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputDot()">.</button>
   </div>
 
-  <!-- 汇率换算面板（2026-07-12 最新实时汇率） -->
+  <!-- 2. 汇率换算面板（2026-07-12 最新汇率） -->
   <div id="panel-rate" class="calc-panel hidden space-y-3">
     <div class="flex gap-2 items-center">
       <input id="rate-in" type="number" placeholder="输入金额" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
@@ -91,7 +92,7 @@ key: '#f5f5f5',
     <p class="text-gray-300 text-xs text-center">汇率基准：1 CNY ≈ 0.1381 USD / 0.1088 EUR / 21.27 JPY / 0.1287 GBP</p>
   </div>
 
-  <!-- 长度换算面板 -->
+  <!-- 3. 长度换算面板 -->
   <div id="panel-length" class="calc-panel hidden space-y-3">
     <div class="flex gap-2 items-center">
       <input id="len-in" type="number" placeholder="输入数值" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
@@ -117,8 +118,8 @@ key: '#f5f5f5',
     </div>
   </div>
 
-  <!-- 重量换算面板 -->
-  <div class="panel-weight" class="calc-panel hidden space-y-3">
+  <!-- 4. 重量换算面板 -->
+  <div id="panel-weight" class="calc-panel hidden space-y-3">
     <div class="flex gap-2 items-center">
       <input id="wt-in" type="number" placeholder="输入数值" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
       <select id="wt-from" class="h-12 rounded-lg px-2 bg-gray-200">
@@ -140,7 +141,23 @@ key: '#f5f5f5',
       </select>
     </div>
   </div>
-  <div class="sync-status" id="syncTip">同步：空闲</div>
+
+  <!-- 5. 新增：中英翻译面板 -->
+  <div id="panel-trans" class="calc-panel hidden space-y-3">
+    <div class="flex justify-between items-center">
+      <span class="text-white text-sm">输入文本</span>
+      <select id="trans-dir" class="h-10 rounded-lg px-2 bg-gray-200 text-sm">
+        <option value="zh2en">中文 → 英语</option>
+        <option value="en2zh">英语 → 中文</option>
+      </select>
+    </div>
+    <textarea id="trans-in" rows="4" placeholder="请输入要翻译的文字" class="w-full rounded-lg p-3 outline-none resize-none"></textarea>
+    <button onclick="translateText()" class="w-full bg-primary text-white py-3 rounded-lg font-medium">立即翻译</button>
+    <div class="space-y-1">
+      <span class="text-white text-sm">翻译结果</span>
+      <textarea id="trans-out" rows="4" readonly placeholder="译文将显示在这里" class="w-full rounded-lg p-3 bg-gray-200 outline-none resize-none"></textarea>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -157,7 +174,7 @@ tabs.forEach(tab=>{
   }
 })
 
-// 普通计算器逻辑
+// ========== 普通计算器 ==========
 const display = document.getElementById('display');
 function inputChar(c){display.value += c}
 function inputDot(){if(!display.value.includes('.')) inputChar('.')}
@@ -171,14 +188,8 @@ function calcResult(){
   }catch{display.value = '计算错误'}
 }
 
-// 2026-07-12 最新汇率（1人民币基准）
-const rateMap = {
-  CNY: 1,
-  USD: 0.1381,
-  EUR: 0.1088,
-  JPY: 21.27,
-  GBP: 0.1287
-};
+// ========== 汇率换算（2026-07-12 基准1CNY） ==========
+const rateMap = {CNY:1,USD:0.1381,EUR:0.1088,JPY:21.27,GBP:0.1287};
 function calcRate(){
   const num = Number(document.getElementById('rate-in').value||0);
   const f = document.getElementById('rate-from').value;
@@ -190,7 +201,7 @@ document.getElementById('rate-in').oninput = calcRate;
 document.getElementById('rate-from').onchange = calcRate;
 document.getElementById('rate-to').onchange = calcRate;
 
-// 长度换算（基准：1 m）
+// ========== 长度换算 ==========
 const lenMap = {m:1,km:1000,cm:0.01,mm:0.001,ft:0.3048,in:0.0254};
 function calcLength(){
   const num = Number(document.getElementById('len-in').value||0);
@@ -203,10 +214,10 @@ document.getElementById('len-in').oninput = calcLength;
 document.getElementById('len-from').onchange = calcLength;
 document.getElementById('len-to').onchange = calcLength;
 
-// 重量换算（基准：1 kg）
+// ========== 重量换算 ==========
 const wtMap = {kg:1,g:0.001,t:1000,jin:0.5,lb:0.453592};
 function calcWeight(){
-  const num = document.getElementById('wt-in').value||0;
+  const num = Number(document.getElementById('wt-in').value||0);
   const f = document.getElementById('wt-from').value;
   const t = document.getElementById('wt-to').value;
   const res = num * wtMap[f] / wtMap[t];
@@ -215,6 +226,51 @@ function calcWeight(){
 document.getElementById('wt-in').oninput = calcWeight;
 document.getElementById('wt-from').onchange = calcWeight;
 document.getElementById('wt-to').onchange = calcWeight;
+
+// ========== 新增：中英翻译（简易内置词典兜底 + 在线翻译API） ==========
+const transIn = document.getElementById('trans-in');
+const transOut = document.getElementById('trans-out');
+const transDir = document.getElementById('trans-dir');
+
+// 简易内置词典（兜底，无网络时可用）
+const zh2enDict = {
+  你好: 'Hello', 世界: 'World', 谢谢: 'Thank you', 再见: 'Goodbye',
+  我爱你: 'I love you', 早上好: 'Good morning', 晚上好: 'Good evening',
+  吃饭: 'Eat', 喝水: 'Drink water', 学习: 'Study', 工作: 'Work',
+  今天: 'Today', 明天: 'Tomorrow', 昨天: 'Yesterday', 开心: 'Happy',
+  难过: 'Sad', 很好: 'Very good', 不错: 'Not bad', 多少钱: 'How much'
+};
+const en2zhDict = Object.fromEntries(Object.entries(zh2enDict).map(([k,v])=>[v,k]));
+
+async function translateText(){
+  const text = transIn.value.trim();
+  if(!text){
+    transOut.value = '请输入需要翻译的文本';
+    return;
+  }
+  transOut.value = '翻译中…';
+  const dir = transDir.value;
+  // 优先在线翻译API（免费公共接口）
+  try{
+    const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${dir==='zh2en'?'zh|en':'en|zh'}`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    if(data.responseData.translatedText){
+      transOut.value = data.responseData.translatedText;
+      return;
+    }
+  }catch(err){
+    console.log('在线翻译失败，使用本地词典兜底',err);
+  }
+  // 在线失败，本地词典逐词替换
+  let result = text;
+  if(dir === 'zh2en'){
+    Object.keys(zh2enDict).forEach(k=>result = result.replaceAll(k,zh2enDict[k]));
+  }else{
+    Object.keys(en2zhDict).forEach(k=>result = result.replaceAll(k,en2zhDict[k]));
+  }
+  transOut.value = result || '无匹配译文';
+}
 </script>
 </body>
 </html>
