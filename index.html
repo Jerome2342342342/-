@@ -1,366 +1,220 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>Online Calculator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
-        .title {
-            font-size: 38px;
-            font-weight: 700;
-            color: #222;
-            margin-bottom: 24px;
-            letter-spacing: 4px;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-        .calc-wrap {
-            background: #222;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 0 20px #0003;
-        }
-        .tab-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .tab-bar button {
-            padding: 10px 0;
-            background: #444;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .tab-bar button.active {
-            background: #34c759;
-        }
-        #input-box {
-            width: 100%;
-            padding: 16px 10px;
-            font-size: 32px;
-            text-align: right;
-            margin-bottom: 12px;
-            border: none;
-            border-radius: 6px;
-            background: #f8f8f8;
-        }
-        .btn-group {
-            display: grid;
-            grid-template-columns: repeat(4, 70px);
-            gap: 10px;
-        }
-        button {
-            padding: 18px 0;
-            font-size: 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #eee;
-            transition: 0.2s;
-        }
-        button.opt {
-            background: #ff9500;
-            color: white;
-        }
-        button.clear {
-            background: #ff3b30;
-            color: white;
-        }
-        button.equal {
-            background: #34c759;
-            color: white;
-            grid-column: span 2;
-        }
-        .convert-panel {
-            display: none;
-            color: #fff;
-        }
-        .convert-panel.show {
-            display: block;
-        }
-        .calc-panel {
-            display: block;
-        }
-        .calc-panel.hide {
-            display: none;
-        }
-        .convert-row {
-            margin: 10px 0;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .convert-row input, .convert-row select {
-            flex: 1;
-            padding: 10px;
-            font-size: 18px;
-            border-radius: 4px;
-            border: none;
-        }
-        .convert-btn {
-            width: 100%;
-            margin-top: 8px;
-            background: #34c759;
-            color: #fff;
-        }
-        .rate-tip {
-            font-size: 12px;
-            color: #ccc;
-            margin: 6px 0;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multifunctional Online Calculator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#22c55e',
+danger: '#ef4444',
+operator: '#f97316',
+panel: '#1e1e1e',
+key: '#f5f5f5',
+},
+}
+}
+</script>
+<style>
+.tab-active { @apply bg-primary text-white }
+.btn-key { @apply transition-all duration-100 active:scale-95 hover:brightness-110 }
+</style>
 </head>
-<body>
-    <h1 class="title">在线计算器</h1>
-    <div class="calc-wrap">
-        <div class="tab-bar">
-            <button class="active" onclick="switchTab('calc')">普通计算</button>
-            <button onclick="switchTab('rate')">汇率换算</button>
-            <button onclick="switchTab('length')">长度换算</button>
-            <button onclick="switchTab('weight')">重量换算</button>
-        </div>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+<h1 class="text-[clamp(1.8rem,5vw,2.4rem)] font-bold text-gray-800 mb-6">在线计算器</h1>
 
-        <!-- 普通计算器 -->
-        <div class="calc-panel" id="calcPanel">
-            <input type="text" id="input-box" readonly>
-            <div class="btn-group">
-                <button class="clear" onclick="clearAll()">C</button>
-                <button onclick="del()">←</button>
-                <button class="opt" onclick="inputChar('/')">/</button>
-                <button class="opt" onclick="inputChar('*')">×</button>
+<div class="w-full max-w-md bg-panel rounded-xl p-4 shadow-2xl">
+  <!-- 标签栏 -->
+  <div class="flex gap-1 mb-4">
+    <button class="calc-tab tab-active px-4 py-2 rounded-t-lg font-medium" data-tab="calc">普通计算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="rate">汇率换算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="length">长度换算</button>
+    <button class="calc-tab bg-gray-700 text-gray-200 px-4 py-2 rounded-t-lg font-medium" data-tab="weight">重量换算</button>
+  </div>
 
-                <button onclick="inputChar('7')">7</button>
-                <button onclick="inputChar('8')">8</button>
-                <button onclick="inputChar('9')">9</button>
-                <button class="opt" onclick="inputChar('-')">-</button>
+  <!-- 输入框 -->
+  <input id="display" readonly class="w-full h-16 bg-white rounded-lg text-right text-2xl px-4 mb-4 outline-none" value="">
 
-                <button onclick="inputChar('4')">4</button>
-                <button onclick="inputChar('5')">5</button>
-                <button onclick="inputChar('6')">6</button>
-                <button class="opt" onclick="inputChar('+')">+</button>
+  <!-- 普通计算器面板 -->
+  <div id="panel-calc" class="calc-panel grid grid-cols-4 gap-2">
+    <button class="btn-key bg-danger text-white py-4 rounded-lg text-xl" onclick="clearAll()">C</button>
+    <button class="btn-key bg-gray-300 py-4 rounded-lg text-xl" onclick="backspace()">←</button>
+    <button class="btn-key bg-operator text-white py-4 rounded-lg text-xl" onclick="inputChar('/')">/</button>
+    <button class="btn-key bg-operator text-white py-4 rounded-lg text-xl" onclick="inputChar('*')">×</button>
 
-                <button onclick="inputChar('1')">1</button>
-                <button onclick="inputChar('2')">2</button>
-                <button onclick="inputChar('3')">3</button>
-                <button class="equal" onclick="calcResult()">=</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('7')">7</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('8')">8</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('9')">9</button>
+    <button class="btn-key bg-operator text-white py-4 rounded-lg text-xl" onclick="inputChar('-')">-</button>
 
-                <button onclick="inputChar('0')">0</button>
-                <button onclick="inputChar('.')">.</button>
-            </div>
-        </div>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('4')">4</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('5')">5</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('6')">6</button>
+    <button class="btn-key bg-operator text-white py-4 rounded-lg text-xl" onclick="inputChar('+')">+</button>
 
-        <!-- 实时汇率换算 -->
-        <div class="convert-panel" id="ratePanel">
-            <div class="rate-tip">💱 汇率实时自动更新</div>
-            <div class="convert-row">
-                <select id="rateFrom">
-                    <option value="CNY">人民币 CNY</option>
-                    <option value="USD">美元 USD</option>
-                    <option value="EUR">欧元 EUR</option>
-                    <option value="JPY">日元 JPY</option>
-                    <option value="GBP">英镑 GBP</option>
-                </select>
-                <input type="number" id="rateNum" placeholder="输入金额">
-            </div>
-            <div class="convert-row">
-                <select id="rateTo">
-                    <option value="USD">美元 USD</option>
-                    <option value="EUR">欧元 EUR</option>
-                    <option value="JPY">日元 JPY</option>
-                    <option value="GBP">英镑 GBP</option>
-                    <option value="CNY">人民币 CNY</option>
-                </select>
-                <input type="text" id="rateRes" readonly placeholder="换算结果">
-            </div>
-            <button class="convert-btn" onclick="calcRate()">立即换算</button>
-        </div>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('1')">1</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('2')">2</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('3')">3</button>
+    <div></div>
 
-        <!-- 长度换算 -->
-        <div class="convert-panel" id="lengthPanel">
-            <div class="convert-row">
-                <select id="lenFrom">
-                    <option value="m">米(m)</option>
-                    <option value="km">千米(km)</option>
-                    <option value="cm">厘米(cm)</option>
-                    <option value="mm">毫米(mm)</option>
-                    <option value="li">里</option>
-                    <option value="inch">英寸</option>
-                </select>
-                <input type="number" id="lenNum" placeholder="输入数值">
-            </div>
-            <div class="convert-row">
-                <select id="lenTo">
-                    <option value="m">米(m)</option>
-                    <option value="km">千米(km)</option>
-                    <option value="cm">厘米(cm)</option>
-                    <option value="mm">毫米(mm)</option>
-                    <option value="li">里</option>
-                    <option value="inch">英寸</option>
-                </select>
-                <input type="text" id="lenRes" readonly placeholder="换算结果">
-            </div>
-            <button class="convert-btn" onclick="calcLength()">立即换算</button>
-        </div>
+    <button class="btn-key bg-primary text-white py-4 rounded-lg text-xl col-span-2" onclick="calcResult()">=</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputChar('0')">0</button>
+    <button class="btn-key bg-key py-4 rounded-lg text-xl" onclick="inputDot()">.</button>
+  </div>
 
-        <!-- 重量换算 -->
-        <div class="convert-panel" id="weightPanel">
-            <div class="convert-row">
-                <select id="wFrom">
-                    <option value="kg">千克(kg)</option>
-                    <option value="g">克(g)</option>
-                    <option value="jin">斤</option>
-                    <option value="ton">吨(ton)</option>
-                    <option value="lb">磅(lb)</option>
-                </select>
-                <input type="number" id="wNum" placeholder="输入数值">
-            </div>
-            <div class="convert-row">
-                <select id="wTo">
-                    <option value="kg">千克(kg)</option>
-                    <option value="g">克(g)</option>
-                    <option value="jin">斤</option>
-                    <option value="ton">吨(ton)</option>
-                    <option value="lb">磅(lb)</option>
-                </select>
-                <input type="text" id="wRes" readonly placeholder="换算结果">
-            </div>
-            <button class="convert-btn" onclick="calcWeight()">立即换算</button>
-        </div>
+  <!-- 汇率换算面板（2026-07-12 最新实时汇率） -->
+  <div id="panel-rate" class="calc-panel hidden space-y-3">
+    <div class="flex gap-2 items-center">
+      <input id="rate-in" type="number" placeholder="输入金额" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
+      <select id="rate-from" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="CNY">人民币 CNY</option>
+        <option value="USD">美元 USD</option>
+        <option value="EUR">欧元 EUR</option>
+        <option value="JPY">日元 JPY</option>
+        <option value="GBP">英镑 GBP</option>
+      </select>
     </div>
+    <div class="flex gap-2 items-center">
+      <input id="rate-out" readonly placeholder="换算结果" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg bg-gray-200">
+      <select id="rate-to" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="USD">美元 USD</option>
+        <option value="CNY">人民币 CNY</option>
+        <option value="EUR">欧元 EUR</option>
+        <option value="JPY">日元 JPY</option>
+        <option value="GBP">英镑 GBP</option>
+      </select>
+    </div>
+    <p class="text-gray-300 text-xs text-center">汇率基准：1 CNY ≈ 0.1381 USD / 0.1088 EUR / 21.27 JPY / 0.1287 GBP</p>
+  </div>
 
-    <script>
-        const input = document.getElementById('input-box');
-        // 全局实时汇率缓存
-        let latestRate = {};
+  <!-- 长度换算面板 -->
+  <div id="panel-length" class="calc-panel hidden space-y-3">
+    <div class="flex gap-2 items-center">
+      <input id="len-in" type="number" placeholder="输入数值" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
+      <select id="len-from" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="m">米(m)</option>
+        <option value="km">千米(km)</option>
+        <option value="cm">厘米(cm)</option>
+        <option value="mm">毫米(mm)</option>
+        <option value="ft">英尺(ft)</option>
+        <option value="in">英寸(in)</option>
+      </select>
+    </div>
+    <div class="flex gap-2 items-center">
+      <input id="len-out" readonly placeholder="换算结果" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg bg-gray-200">
+      <select id="len-to" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="cm">厘米(cm)</option>
+        <option value="m">米(m)</option>
+        <option value="km">千米(km)</option>
+        <option value="mm">毫米(mm)</option>
+        <option value="ft">英尺(ft)</option>
+        <option value="in">英寸(in)</option>
+      </select>
+    </div>
+  </div>
 
-        // 页面加载自动获取最新汇率
-        window.onload = async function(){
-            await fetchLatestRate();
-        }
+  <!-- 重量换算面板 -->
+  <div class="panel-weight" class="calc-panel hidden space-y-3">
+    <div class="flex gap-2 items-center">
+      <input id="wt-in" type="number" placeholder="输入数值" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg">
+      <select id="wt-from" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="kg">千克(kg)</option>
+        <option value="g">克(g)</option>
+        <option value="t">吨(t)</option>
+        <option value="jin">斤</option>
+        <option value="lb">磅(lb)</option>
+      </select>
+    </div>
+    <div class="flex gap-2 items-center">
+      <input id="wt-out" readonly placeholder="换算结果" class="flex-1 h-12 rounded-lg px-3 outline-none text-lg bg-gray-200">
+      <select id="wt-to" class="h-12 rounded-lg px-2 bg-gray-200">
+        <option value="g">克(g)</option>
+        <option value="kg">千克(kg)</option>
+        <option value="t">吨(t)</option>
+        <option value="jin">斤</option>
+        <option value="lb">磅(lb)</option>
+      </select>
+    </div>
+  </div>
+  <div class="sync-status" id="syncTip">同步：空闲</div>
+</div>
 
-        // 获取实时汇率（免费、无key、跨域可用）
-        async function fetchLatestRate(){
-            try{
-                let res = await fetch("https://cdn.jsdelivr.net/npm/@irfanokr/currency-api@latest/latest/cny.json");
-                latestRate = await res.json();
-            }catch(e){
-                // 失败兜底备用近似汇率
-                latestRate = {usd:0.14,eur:0.13,jpy:21,gbp:0.11,cny:1};
-            }
-        }
+<script>
+// 标签切换
+const tabs = document.querySelectorAll('.calc-tab');
+const panels = document.querySelectorAll('.calc-panel');
+tabs.forEach(tab=>{
+  tab.onclick = ()=>{
+    const target = tab.dataset.tab;
+    tabs.forEach(t=>t.classList.remove('tab-active','bg-gray-700','text-gray-200'));
+    tab.classList.add('tab-active');
+    panels.forEach(p=>p.classList.add('hidden'));
+    document.getElementById(`panel-${target}`).classList.remove('hidden');
+  }
+})
 
-        // 切换面板
-        function switchTab(type) {
-            document.getElementById('calcPanel').classList.add('hide');
-            document.getElementById('ratePanel').classList.remove('show');
-            document.getElementById('lengthPanel').classList.remove('show');
-            document.getElementById('weightPanel').classList.remove('show');
-            document.querySelectorAll('.tab-bar button').forEach(btn=>btn.classList.remove('active'));
+// 普通计算器逻辑
+const display = document.getElementById('display');
+function inputChar(c){display.value += c}
+function inputDot(){if(!display.value.includes('.')) inputChar('.')}
+function backspace(){display.value = display.value.slice(0,-1)}
+function clearAll(){display.value = ''}
+function calcResult(){
+  try{
+    let exp = display.value.replace(/×/g,'*');
+    let res = eval(exp);
+    display.value = Number.isInteger(res) ? res : res.toFixed(6).replace(/\.?0*$/,'');
+  }catch{display.value = '计算错误'}
+}
 
-            switch(type){
-                case 'calc':
-                    document.getElementById('calcPanel').classList.remove('hide');
-                    document.querySelector('.tab-bar button:nth-child(1)').classList.add('active');
-                    break;
-                case 'rate':
-                    document.getElementById('ratePanel').classList.add('show');
-                    document.querySelector('.tab-bar button:nth-child(2)').classList.add('active');
-                    break;
-                case 'length':
-                    document.getElementById('lengthPanel').classList.add('show');
-                    document.querySelector('.tab-bar button:nth-child(3)').classList.add('active');
-                    break;
-                case 'weight':
-                    document.getElementById('weightPanel').classList.add('show');
-                    document.querySelector('.tab-bar button:nth-child(4)').classList.add('active');
-                    break;
-            }
-        }
+// 2026-07-12 最新汇率（1人民币基准）
+const rateMap = {
+  CNY: 1,
+  USD: 0.1381,
+  EUR: 0.1088,
+  JPY: 21.27,
+  GBP: 0.1287
+};
+function calcRate(){
+  const num = Number(document.getElementById('rate-in').value||0);
+  const f = document.getElementById('rate-from').value;
+  const t = document.getElementById('rate-to').value;
+  const res = num * rateMap[f] / rateMap[t];
+  document.getElementById('rate-out').value = res.toFixed(4);
+}
+document.getElementById('rate-in').oninput = calcRate;
+document.getElementById('rate-from').onchange = calcRate;
+document.getElementById('rate-to').onchange = calcRate;
 
-        // 基础计算器
-        function inputChar(c) {input.value += c;}
-        function clearAll() {input.value = '';}
-        function del() {input.value = input.value.slice(0, -1);}
-        function calcResult() {
-            try {
-                let exp = input.value.replace(/×/g, '*');
-                let res = eval(exp);
-                if(isNaN(res) || res === Infinity || res === -Infinity){
-                    input.value = "表达式无效";
-                }else{
-                    input.value = res;
-                }
-            } catch (err) {
-                input.value = "表达式无效";
-            }
-        }
+// 长度换算（基准：1 m）
+const lenMap = {m:1,km:1000,cm:0.01,mm:0.001,ft:0.3048,in:0.0254};
+function calcLength(){
+  const num = Number(document.getElementById('len-in').value||0);
+  const f = document.getElementById('len-from').value;
+  const t = document.getElementById('len-to').value;
+  const res = num * lenMap[f] / lenMap[t];
+  document.getElementById('len-out').value = res.toFixed(4);
+}
+document.getElementById('len-in').oninput = calcLength;
+document.getElementById('len-from').onchange = calcLength;
+document.getElementById('len-to').onchange = calcLength;
 
-        // 实时汇率换算
-        async function calcRate() {
-            const from = document.getElementById('rateFrom').value.toLowerCase();
-            const to = document.getElementById('rateTo').value.toLowerCase();
-            const num = Number(document.getElementById('rateNum').value);
-
-            if(isNaN(num) || num <= 0){
-                document.getElementById('rateRes').value = "输入有效金额";
-                return;
-            }
-
-            // 如果汇率为空，重新拉取
-            if(!latestRate.usd) await fetchLatestRate();
-
-            let baseCny = from === "cny" ? 1 : (1 / latestRate[from]);
-            let result = num * baseCny * latestRate[to];
-            document.getElementById('rateRes').value = result.toFixed(4);
-        }
-
-        // 长度换算
-        const lenBase = {m:1,km:1000,cm:0.01,mm:0.001,li:500,inch:0.0254};
-        function calcLength() {
-            const from = document.getElementById('lenFrom').value;
-            const to = document.getElementById('lenTo').value;
-            const num = Number(document.getElementById('lenNum').value);
-            if(isNaN(num) || num <= 0){
-                document.getElementById('lenRes').value = "输入有效数值";
-                return;
-            }
-            let meter = num * lenBase[from];
-            let res = meter / lenBase[to];
-            document.getElementById('lenRes').value = res.toFixed(4);
-        }
-
-        // 重量换算
-        const weightBase = {kg:1,g:0.001,jin:0.5,ton:1000,lb:0.453592};
-        function calcWeight() {
-            const from = document.getElementById('wFrom').value;
-            const to = document.getElementById('wTo').value;
-            const num = Number(document.getElementById('wNum').value);
-            if(isNaN(num) || num <= 0){
-                document.getElementById('wRes').value = "输入有效数值";
-                return;
-            }
-            let kg = num * weightBase[from];
-            let res = kg / weightBase[to];
-            document.getElementById('wRes').value = res.toFixed(4);
-        }
-    </script>
+// 重量换算（基准：1 kg）
+const wtMap = {kg:1,g:0.001,t:1000,jin:0.5,lb:0.453592};
+function calcWeight(){
+  const num = document.getElementById('wt-in').value||0;
+  const f = document.getElementById('wt-from').value;
+  const t = document.getElementById('wt-to').value;
+  const res = num * wtMap[f] / wtMap[t];
+  document.getElementById('wt-out').value = res.toFixed(4);
+}
+document.getElementById('wt-in').oninput = calcWeight;
+document.getElementById('wt-from').onchange = calcWeight;
+document.getElementById('wt-to').onchange = calcWeight;
+</script>
 </body>
 </html>
